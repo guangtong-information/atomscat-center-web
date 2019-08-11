@@ -4,55 +4,119 @@
 <template>
     <div>
         adDataReport
-        <Upload
-                ref="upload"
-                :show-upload-list="false"
-                :on-success="handleSuccess"
-                :on-error="handleError"
-                :format="['xls','xlsx']"
-                :max-size="5120"
-                :on-format-error="handleFormatError"
-                :on-exceeded-size="handleMaxSize"
-                :before-upload="handleBeforeUpload"
-                :action="uploadFileUrl"
-                :headers="accessToken"
-                style="display: -webkit-inline-box;"
-        >
-            <Button icon="ios-cloud-upload-outline">导入客户数据</Button>
-        </Upload>
+        <input v-model="params.customerShortName">
+        <button @click="getList">获取数据</button>
+        <button @click="add">添加数据</button>
+        <Table :columns="columns1" :data="data1"></Table>
+        <Page :total="total"
+              :page-size="params.pageSize"
+              :current="params.pageNumber"
+              @on-change="change"
+              @on-page-size-change="changeSize"
+              :page-size-opts="size"
+              show-sizer
+        />
+        <Modal
+                v-model="modal5"
+                title="Custom width"
+                width="500">
+            <div>
+                <Form ref="req" :model="req" :label-width="80" :rules="reqValidate">
+                    <FormItem label="公司全称" prop="customerName">
+                        <input v-model="req.customerName" placeholder="公司全称">
+                    </FormItem>
+                    <FormItem label="公司简称" prop="customerShortName">
+                        <input v-model="req.customerShortName" placeholder="公司简称">
+                    </FormItem>
+                </Form>
+            </div>
+            <div slot="footer">
+                <Button type="text" @click="modal5 = false">取消</Button>
+                <Button type="primary" :loading="submitLoading" @click="addSubmit">提交</Button>
+            </div>
+        </Modal>
     </div>
 </template>
 
 <script>
-    import {uploadFileLocal} from "@/api/index";
+    import {uploadFileLocal, getAccountChannel} from "@/api/index";
+    import { validateMobile } from "@/libs/validate";
     export default {
         name: "adDataReport",
         data() {
             return {
                 accessToken: {},
-                uploadFileUrl: uploadFileLocal
+                submitLoading: false,
+                req:{
+                    customerName:"",
+                    customerShortName:""
+                },
+                reqValidate: {
+                    customerName: [
+                        { required: true, message: "公司全称不能为空", trigger: "blur" }
+                    ],
+                    customerShortName: [
+                        { required: true, message: "公司简称不能为空", trigger: "blur" },
+                        { validator: validateMobile, trigger: "blur" }
+                    ],
+                },
+                uploadFileUrl: uploadFileLocal,
+                params: {
+                    customerShortName: "",
+                    type: 1,
+                    pageNumber: 1,
+                    pageSize: 5,
+                    startDate: "",
+                    endDate: "",
+                    pid: 0,
+                    sort: 'createTime',
+                    order: 'desc'
+                },
+                total: 0,
+                columns1:[
+                    {
+                        title: '公司全称',
+                        key: 'customerName'
+                    },
+                    {
+                        title: '公司简称',
+                        key: 'customerShortName'
+                    }],
+                data1: [],
+                size: [5,10,20,50,100],
+                modal5: false
             }
         },
         methods:{
+            add(){
+              this.modal5 = true;
+            },
+            addSubmit(){
+                this.$refs.req.validate(valid => {
+                    if(valid){
+                        this.modal5 = false;
+                    }
+                });
+            },
+            getList(){
+                getAccountChannel(this.params).then(res => {
+                    this.data1 = res.result['content'];
+                    this.total = res.result.totalElements;
+                })
+            },
+            change(v){
+                this.params.pageNumber = v;
+                this.getList();
+            },
+            changeSize(v){
+                this.params.pageNumber = 1;
+                this.params.pageSize = v;
+                this.getList();
+            },
             init() {
                 this.accessToken = {
                     accessToken: this.getStore("accessToken")
                 };
-            },
-            handleSuccess: function () {
-
-            },
-            handleError: function () {
-
-            },
-            handleFormatError: function () {
-
-            },
-            handleMaxSize: function () {
-                
-            },
-            handleBeforeUpload: function () {
-                
             }
         },
         created() {

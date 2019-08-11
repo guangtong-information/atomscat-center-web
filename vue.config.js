@@ -6,7 +6,7 @@ module.exports = {
         port: 9999,
         proxy: {
             '/api': {
-                target: 'http://127.0.0.1:8899',  // 请求本地
+                target: 'http://192.168.3.61:8899',  // 请求本地
                 ws: true
             },
             '/foo': {
