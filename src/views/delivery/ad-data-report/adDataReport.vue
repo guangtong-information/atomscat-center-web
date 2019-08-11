@@ -82,6 +82,56 @@
                     {
                         title: '公司简称',
                         key: 'customerShortName'
+                    },
+                    {
+                        title: "操作",
+                        key: "action",
+                        width: 160,
+                        align: "center",
+                        fixed: "right",
+                        render: (h, params) => {
+                            return h("div", [
+                                h(
+                                    "Button",
+                                    {
+                                        props: {
+                                            type: "primary",
+                                            size: "small"
+                                        },
+                                        style: {
+                                            marginRight: "5px"
+                                        },
+                                        on: {
+                                            click: () => {
+                                                this.$refs['reqabc'].resetFields();
+                                                let str = JSON.stringify(params.row);
+                                                let data = JSON.parse(str);
+                                                this.req = data;
+                                                this.modal5 = true;
+                                                // this.accountEdit(params.row);
+                                            }
+                                        }
+                                    },
+                                    "编辑"
+                                ),
+                                h(
+                                    "Button",
+                                    {
+                                        props: {
+                                            type: "error",
+                                            size: "small"
+                                        },
+                                        on: {
+                                            click: () => {
+                                                alert(params.row.id)
+                                                // this.removeAccountModal(params.row);
+                                            }
+                                        }
+                                    },
+                                    "删除"
+                                )
+                            ]);
+                        }
                     }],
                 data1: [],
                 size: [5,10,20,50,100],
@@ -90,16 +140,17 @@
         },
         methods:{
             add(){
-              this.modal5 = true;
+                this.$refs['reqabc'].resetFields();
+                this.modal5 = true;
             },
             addSubmit(){
                 this.$refs['reqabc'].validate(valid => {
                     if(valid){
                         addAccountChannel(this.req).then(res => {
-                           this.getList();
+                            this.modal5 = false;
+                            this.$refs['reqabc'].resetFields();
+                            this.getList();
                         });
-                        this.modal5 = false;
-                        this.$refs['reqabc'].resetFields();
                     }
                 });
             },
