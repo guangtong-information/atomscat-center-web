@@ -21,7 +21,7 @@
                 title="Custom width"
                 width="500">
             <div>
-                <Form ref="req" :model="req" :label-width="80" :rules="reqValidate">
+                <Form ref="reqabc" :model="req" :label-width="80" :rules="reqValidate">
                     <FormItem label="公司全称" prop="customerName">
                         <input v-model="req.customerName" placeholder="公司全称">
                     </FormItem>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-    import {uploadFileLocal, getAccountChannel} from "@/api/index";
+    import {uploadFileLocal, getAccountChannel, addAccountChannel} from "@/api/index";
     import { validateMobile } from "@/libs/validate";
     export default {
         name: "adDataReport",
@@ -49,15 +49,16 @@
                 submitLoading: false,
                 req:{
                     customerName:"",
-                    customerShortName:""
+                    customerShortName:"",
+                    pid: "0"
                 },
                 reqValidate: {
                     customerName: [
                         { required: true, message: "公司全称不能为空", trigger: "blur" }
                     ],
                     customerShortName: [
-                        { required: true, message: "公司简称不能为空", trigger: "blur" },
-                        { validator: validateMobile, trigger: "blur" }
+                        { required: true, message: "公司简称不能为空", trigger: "blur" }
+                        // { validator: validateMobile, trigger: "blur" }
                     ],
                 },
                 uploadFileUrl: uploadFileLocal,
@@ -92,9 +93,13 @@
               this.modal5 = true;
             },
             addSubmit(){
-                this.$refs.req.validate(valid => {
+                this.$refs['reqabc'].validate(valid => {
                     if(valid){
+                        addAccountChannel(this.req).then(res => {
+                           this.getList();
+                        });
                         this.modal5 = false;
+                        this.$refs['reqabc'].resetFields();
                     }
                 });
             },
